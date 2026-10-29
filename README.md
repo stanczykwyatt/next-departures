@@ -156,7 +156,7 @@ Schedules, live departures and alerts come from each agency's own published feed
 Add your station once, and the answer is a click away in the menu bar, live from Metro Transit, with how late or early each train is running. Pick the station and both directions are shown, headed to Union Depot or Target Field.
 
 **Does it show University of Minnesota campus buses?**
-Yes. Metro Transit's schedule includes the Campus Connector and the campus circulators, routes 120 to 125. Search for your stop, or pick the route to see all its stops.
+Yes. Metro Transit's schedule includes the Campus Connector and the campus circulators, routes 120 to 125. Search for your stop, or pick the route to see all its stops. Metro Transit's live feed doesn't carry predictions for them, so they're shown from the timetable, marked "Scheduled", while the Green Line and Metro Transit's own buses are live.
 
 **Does it work for my city?**
 If your agency publishes a GTFS schedule, yes, with live times if it also publishes GTFS-realtime trip updates. Most large agencies do. Add its feed with Add a Feed… in the stop picker.
