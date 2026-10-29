@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Run tests
+        run: swift test
+
+      - name: Build the app
+        run: scripts/build-app.sh
+
+      - name: Check the app has only the sandbox and outgoing connections
+        run: |
+          entitlements="$(codesign -d --entitlements - --xml "build/Next Departures.app" 2>/dev/null)"
+          plist="$(mktemp)"
+          printf '%s' "$entitlements" > "$plist"
+          for key in com.apple.security.app-sandbox com.apple.security.network.client; do
+            if [ "$(/usr/libexec/PlistBuddy -c "Print :$key" "$plist" 2>/dev/null)" != "true" ]; then
+              echo "::error::Next Departures must have $key."
+              exit 1
+            fi
+          done
+          others="$(grep -o "<key>[^<]*</key>" <<< "$entitlements" | sed -E 's#</?key>##g' | grep -v \
+            -e "^com.apple.security.app-sandbox$" \
+            -e "^com.apple.security.network.client$" || true)"
+          if [ -n "$others" ]; then
+            echo "$others"
+            echo "::error::Next Departures must have no entitlements besides the App Sandbox and outgoing network connections."
+            exit 1
+          fi
+          if ! codesign -dv "build/Next Departures.app" 2>&1 | grep -q "flags=.*runtime"; then
+            echo "::error::Next Departures must be signed with the hardened runtime."
+            exit 1
+          fi
+          if /usr/libexec/PlistBuddy -c "Print :NSAppTransportSecurity" Resources/Info.plist >/dev/null 2>&1; then
+            echo "::error::App Transport Security must stay on, with no exceptions."
+            exit 1
+          fi
+          echo "Sandboxed, with outgoing connections and nothing else, hardened runtime, App Transport Security on."
+
+      - name: Check only the fetcher talks to the network
+        run: |
+          network='URLSession|NSURLConnection|NWConnection|NWListener|NWBrowser|NWPathMonitor|CFSocket|CFStream|CFNetwork|getaddrinfo|\bsocket\(|\bconnect\(|WKWebView|WebView|LPMetadataProvider|contentsOf: *URL\(string|InputStream\(url|Data\(contentsOf: *(remote|url)'
+          found="$(grep -rnE "$network" Sources | grep -v "^Sources/TransitCore/Fetcher.swift:" || true)"
+          if [ -n "$found" ]; then
+            echo "$found"
+            echo "::error::Only Sources/TransitCore/Fetcher.swift may use the network."
+            exit 1
+          fi
+          if grep -nE "\bhttp://" Sources/TransitCore/Fetcher.swift; then
+            echo "::error::The fetcher must only ever use https."
+            exit 1
+          fi
+          echo "The network is only used in Fetcher.swift."
+
+      - name: Check the only hosts named are the preset feed's
+        run: |
+          # Addresses in the code: the preset feeds, and the project's own page in the user agent and About box.
+          hosts="$(grep -rhoE 'https?://[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+' Sources | sed -E 's#https?://##' | sort -u | grep -v -e '^svc\.metrotransit\.org$' -e '^github\.com$' || true)"
+          if [ -n "$hosts" ]; then
+            echo "$hosts"
+            echo "::error::Next Departures must not name any host besides its preset feeds."
+            exit 1
+          fi
+          found="$(grep -rn 'URL(string:' Sources | grep -v '^Sources/TransitCore/Feeds.swift:' || true)"
+          if [ -n "$found" ]; then
+            echo "$found"
+            echo "::error::Addresses are only made in Feeds.swift, from the presets or from addresses checked by FeedSource.check."
+            exit 1
+          fi
+          echo "Only svc.metrotransit.org is named."
+
+      - name: Check the app never opens URLs, starts programs, or reads location, input or the screen
+        run: |
+          pattern='NSWorkspace[^)]*\.open\(|openURL|openApplication|LSOpen|Process\(\)|posix_spawn|NSTask|\bexecv|(^|[^.A-Za-z])system\(|NSAppleScript|NSUserAppleScriptTask|AXIsProcessTrusted|AXUIElement|CGEvent(Tap|PostToPid)|tapCreate|NSEvent\.addGlobalMonitor|CGWindowListCreateImage|SCShareableContent|CLLocationManager|CoreLocation|CNContactStore|EKEventStore|AVCaptureDevice|IOHIDManager|NSXPCConnection|dlopen'
+          if grep -rnE "$pattern" Sources; then
+            echo "::error::Next Departures must not open URLs, start programs, control other apps, or read location, contacts, input or the screen."
+            exit 1
+          fi
+          echo "No URL opening, child processes, Apple Events, location, contacts, event taps, Accessibility or screen capture."
+
+      - name: Check there are no dependencies
+        run: |
+          if grep -nE '\.package\(' Package.swift; then
+            echo "::error::Next Departures has no dependencies, so every line that runs is in this repository."
+            exit 1
+          fi
+          echo "No dependencies."
+
+      - name: Check only the feed library writes or deletes files
+        run: |
+          writes='\.write\(to:|createFile|copyItem|moveItem|linkItem|removeItem|trashItem|unlink\(|rmdir\(|\btruncate\(|fopen\(|FileHandle\(forWriting'
+          found="$(grep -rnE "$writes" Sources | grep -v "^Sources/TransitCore/Library.swift:" || true)"
+          if [ -n "$found" ]; then
+            echo "$found"
+            echo "::error::Only Library.swift may write or delete files, and only in its own folder."
+            exit 1
+          fi
+          echo "Files are only written and deleted by Library.swift."
+
+      - name: Check the signature keeps updates recognized
+        run: |
+          requirement="$(codesign -d -r- "build/Next Departures.app" 2>&1 | grep designated)"
+          if [ "$requirement" != 'designated => identifier "com.stanczykwyatt.NextDepartures"' ]; then
+            echo "$requirement"
+            echo "::error::The ad-hoc build must name its bundle ID as the designated requirement."
+            exit 1
+          fi
+          echo "$requirement"

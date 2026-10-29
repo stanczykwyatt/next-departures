@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest an idea, or an agency to add.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would it help you do?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How do you picture it working?
+  - type: textarea
+    id: agency
+    attributes:
+      label: Your agency
+      description: If it's about a feed, which agency, and where it publishes its GTFS and GTFS-realtime feeds and their terms.

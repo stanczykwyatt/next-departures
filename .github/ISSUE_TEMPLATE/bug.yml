@@ -1,0 +1,29 @@
+name: Bug report
+description: Something isn't working, or a departure came out wrong.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What were you doing, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: The stop and the ride
+      description: The agency, the stop's number or ID, the route, when you looked, and what the stop's sign or the agency's own app said. If it's a feed you added, its addresses, unless they have an API key in them.
+  - type: input
+    id: version
+    attributes:
+      label: Next Departures version
+      description: Menu bar icon → About Next Departures, or `next-departures --version`.
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+    validations:
+      required: true
