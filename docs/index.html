@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Next Departures: live bus and train departures in your Mac's menu bar</title>
-  <meta name="description" content="Next Departures is a free, open-source Mac menu bar app that shows the next departures from the stops you use, live from the agency's GTFS-realtime feed, with delays, cancellations and service alerts. Ready for Metro Transit in Minneapolis and Saint Paul, including the Green Line and University of Minnesota campus buses, and any agency that publishes GTFS-realtime. No tracking, no account.">
+  <meta name="description" content="Free Mac menu bar app with your stop&#x27;s next bus and train, live from GTFS-realtime: delays, cancellations, alerts. Ready for Metro Transit and UMN campus buses. No tracking, no account.">
   <meta name="keywords" content="next bus mac menu bar, green line next train, metro transit mac app, university of minnesota campus connector times, gtfs realtime mac, transit departures menu bar, bus arrival times mac, nextrip mac">
   <link rel="canonical" href="https://stanczykwyatt.github.io/next-departures/">
   <link rel="icon" href="icon.png">
@@ -57,38 +57,53 @@
   }
   </script>
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "How can I see when the next Green Line train leaves from my Mac?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Add your station to Next Departures once. Its next trains in both directions are then a click away in the menu bar, live from Metro Transit, with how late or early each is running." }
-      },
-      {
-        "@type": "Question",
-        "name": "Does it show University of Minnesota campus bus times?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Metro Transit's schedule includes the Campus Connector and the campus circulators, routes 120 to 125, shown from the timetable. Search for your stop, or pick the route to see all of its stops." }
-      },
-      {
-        "@type": "Question",
-        "name": "Does it work with other cities?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes, with any agency that publishes a GTFS schedule, and live times where it also publishes GTFS-realtime trip updates. Paste its feed addresses with Add a Feed. The Mobility Database lists over a thousand." }
-      },
-      {
-        "@type": "Question",
-        "name": "Does Next Departures track my location?",
-        "acceptedAnswer": { "@type": "Answer", "text": "No. It never asks for your location and sends nothing about you. It downloads the agency's whole schedule and live feed and picks out your stops on your Mac." }
-      },
-      {
-        "@type": "Question",
-        "name": "How much data does it use?",
-        "acceptedAnswer": { "@type": "Answer", "text": "The schedule is downloaded once and checked daily. While the menu or window is open, the live feed is fetched every 30 seconds; with both closed, nothing is fetched." }
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does it know where I am?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. It never asks for your location and sends nothing about you: no account, no analytics. It downloads the agency's whole schedule and live feed, straight from the agency, and picks out your stops on your Mac."
       }
-    ]
-  }
-  </script>
+    },
+    {
+      "@type": "Question",
+      "name": "What does it connect to?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Only the transit feeds you use: svc.metrotransit.org for Metro Transit, and the addresses you add. It runs in the App Sandbox with outgoing connections as its only entitlement, refuses redirects to other sites, and CI checks every build. The details are in SECURITY.md."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much data does it use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The schedule is downloaded once and checked daily; Metro Transit's is about 27 MB and changes about weekly. The live feed is fetched every 30 seconds only while the menu or the window is open, about a megabyte each time for Metro Transit. With both closed, it fetches nothing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does a ride say \"Scheduled\"?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The agency's feed has no prediction for it yet, often because the bus hasn't started its trip. The time is the timetable's. Rides marked live come straight from the feed."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there a widget?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not yet. A widget needs a signed app extension, which comes with a Developer ID signature, and it's next on the roadmap."
+      }
+    }
+  ]
+}
+</script>
 
   <style>
     :root {
